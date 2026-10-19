@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+
+# Environment files (secrets — never commit)
+.env
+.env.local
+.env.*.local
+apps/web/.env
+services/api/.env
+
+# Build output
+dist/
+build/
+.next/
+__pycache__/
+*.pyc
+*.pyo
+
+# Python virtual environments
+.venv/
+venv/
+services/api/.venv/
+
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Vercel
+.vercel/
+
+# Supabase local
+supabase/.temp/
+*.db
+
+# Test cache
+.pytest_cache/
+
