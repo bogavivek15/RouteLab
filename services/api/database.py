@@ -1,8 +1,11 @@
 import sqlite3
 import uuid
+import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from services.api.config import settings
+
+logger = logging.getLogger("callflow.database")
 
 # Global Supabase client if configured
 _supabase_client = None
@@ -15,15 +18,15 @@ if settings.SUPABASE_URL and settings.SUPABASE_SERVICE_KEY:
             settings.SUPABASE_SERVICE_KEY
         )
     except Exception as e:
-        print(f"Failed to initialize Supabase client: {e}")
+        logger.warning(f"Failed to initialize Supabase client: {e}")
         _supabase_client = None
 
 
 class DatabaseAdapter:
     def __init__(self):
+        # Always initialize SQLite fallback to ensure resilience
+        self._init_sqlite()
         self.use_supabase = _supabase_client is not None
-        if not self.use_supabase:
-            self._init_sqlite()
 
     def _init_sqlite(self):
         """Initializes a local SQLite fallback database matching the Supabase schema."""
@@ -68,7 +71,10 @@ class DatabaseAdapter:
                 _supabase_client.table("calls").select("id").limit(1).execute()
                 return "connected"
             except Exception as e:
-                return f"error: {str(e)[:50]}"
+                err_msg = str(e)
+                if "PGRST205" in err_msg or "Could not find the table" in err_msg:
+                    return "supabase_tables_missing (run supabase/schema.sql in Supabase SQL Editor)"
+                return f"supabase_error: {err_msg[:60]}"
         return "local_storage"
 
     def create_call(self, prospect_name: Optional[str] = None, prospect_company: Optional[str] = None) -> Dict[str, Any]:
@@ -76,74 +82,82 @@ class DatabaseAdapter:
         now = datetime.now(timezone.utc).isoformat()
         
         if self.use_supabase:
-            data = {
-                "id": call_id,
-                "prospect_name": prospect_name,
-                "prospect_company": prospect_company,
-                "current_stage": 1,
-                "furthest_stage": 1,
-                "status": "in_progress",
-                "final_outcome": None,
-                "summary": None,
-                "started_at": now,
-                "created_at": now,
-                "updated_at": now
-            }
-            res = _supabase_client.table("calls").insert(data).execute()
-            created = res.data[0]
-            created["stage_results"] = []
-            return created
-        else:
-            with self.conn:
-                self.conn.execute("""
-                    INSERT INTO calls (id, prospect_name, prospect_company, current_stage, furthest_stage, status, started_at, created_at, updated_at)
-                    VALUES (?, ?, ?, 1, 1, 'in_progress', ?, ?, ?)
-                """, (call_id, prospect_name, prospect_company, now, now, now))
-            return {
-                "id": call_id,
-                "prospect_name": prospect_name,
-                "prospect_company": prospect_company,
-                "current_stage": 1,
-                "furthest_stage": 1,
-                "status": "in_progress",
-                "final_outcome": None,
-                "summary": None,
-                "started_at": now,
-                "ended_at": None,
-                "created_at": now,
-                "updated_at": now,
-                "stage_results": []
-            }
+            try:
+                data = {
+                    "id": call_id,
+                    "prospect_name": prospect_name,
+                    "prospect_company": prospect_company,
+                    "current_stage": 1,
+                    "furthest_stage": 1,
+                    "status": "in_progress",
+                    "final_outcome": None,
+                    "summary": None,
+                    "started_at": now,
+                    "created_at": now,
+                    "updated_at": now
+                }
+                res = _supabase_client.table("calls").insert(data).execute()
+                created = res.data[0]
+                created["stage_results"] = []
+                return created
+            except Exception as e:
+                logger.warning(f"Supabase create_call failed ({e}). Falling back to local database.")
+
+        with self.conn:
+            self.conn.execute("""
+                INSERT INTO calls (id, prospect_name, prospect_company, current_stage, furthest_stage, status, started_at, created_at, updated_at)
+                VALUES (?, ?, ?, 1, 1, 'in_progress', ?, ?, ?)
+            """, (call_id, prospect_name, prospect_company, now, now, now))
+        return {
+            "id": call_id,
+            "prospect_name": prospect_name,
+            "prospect_company": prospect_company,
+            "current_stage": 1,
+            "furthest_stage": 1,
+            "status": "in_progress",
+            "final_outcome": None,
+            "summary": None,
+            "started_at": now,
+            "ended_at": None,
+            "created_at": now,
+            "updated_at": now,
+            "stage_results": []
+        }
 
     def get_call(self, call_id: str) -> Optional[Dict[str, Any]]:
         if self.use_supabase:
-            res = _supabase_client.table("calls").select("*").eq("id", call_id).execute()
-            if not res.data:
-                return None
-            call = res.data[0]
-            stages_res = _supabase_client.table("stage_results").select("*").eq("call_id", call_id).order("stage_number").execute()
-            call["stage_results"] = stages_res.data
-            return call
-        else:
-            cursor = self.conn.cursor()
-            cursor.execute("SELECT * FROM calls WHERE id = ?", (call_id,))
-            row = cursor.fetchone()
-            if not row:
-                return None
-            call = dict(row)
-            cursor.execute("SELECT * FROM stage_results WHERE call_id = ? ORDER BY stage_number ASC", (call_id,))
-            stages = [dict(r) for r in cursor.fetchall()]
-            call["stage_results"] = stages
-            return call
+            try:
+                res = _supabase_client.table("calls").select("*").eq("id", call_id).execute()
+                if res.data:
+                    call = res.data[0]
+                    stages_res = _supabase_client.table("stage_results").select("*").eq("call_id", call_id).order("stage_number").execute()
+                    call["stage_results"] = stages_res.data
+                    return call
+            except Exception as e:
+                logger.warning(f"Supabase get_call failed ({e}). Falling back to local database.")
+
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM calls WHERE id = ?", (call_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        call = dict(row)
+        cursor.execute("SELECT * FROM stage_results WHERE call_id = ? ORDER BY stage_number ASC", (call_id,))
+        stages = [dict(r) for r in cursor.fetchall()]
+        call["stage_results"] = stages
+        return call
 
     def list_calls(self) -> List[Dict[str, Any]]:
         if self.use_supabase:
-            res = _supabase_client.table("calls").select("*").order("created_at", desc=True).execute()
-            return res.data
-        else:
-            cursor = self.conn.cursor()
-            cursor.execute("SELECT * FROM calls ORDER BY created_at DESC")
-            return [dict(r) for r in cursor.fetchall()]
+            try:
+                res = _supabase_client.table("calls").select("*").order("created_at", desc=True).execute()
+                return res.data
+            except Exception as e:
+                logger.warning(f"Supabase list_calls failed ({e}). Falling back to local database.")
+
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM calls ORDER BY created_at DESC")
+        return [dict(r) for r in cursor.fetchall()]
 
     def save_stage_result(self, call_id: str, stage_number: int, outcome: Optional[str] = None, prospect_words: Optional[str] = None, notes: Optional[str] = None) -> Optional[Dict[str, Any]]:
         now = datetime.now(timezone.utc).isoformat()
@@ -155,56 +169,56 @@ class DatabaseAdapter:
         new_furthest = max(call.get("furthest_stage", 1), stage_number)
         
         if self.use_supabase:
-            # Upsert stage result
-            result_data = {
-                "call_id": call_id,
-                "stage_number": stage_number,
-                "outcome": outcome,
-                "prospect_words": prospect_words,
-                "notes": notes,
-                "updated_at": now
-            }
-            # Check if stage_result exists
-            existing = _supabase_client.table("stage_results").select("id").eq("call_id", call_id).eq("stage_number", stage_number).execute()
-            if existing.data:
-                _supabase_client.table("stage_results").update(result_data).eq("id", existing.data[0]["id"]).execute()
-            else:
-                result_data["id"] = str(uuid.uuid4())
-                result_data["created_at"] = now
-                _supabase_client.table("stage_results").insert(result_data).execute()
-
-            # Update call stage markers
-            _supabase_client.table("calls").update({
-                "current_stage": stage_number,
-                "furthest_stage": new_furthest,
-                "updated_at": now
-            }).eq("id", call_id).execute()
-
-            return self.get_call(call_id)
-        else:
-            with self.conn:
-                cursor = self.conn.cursor()
-                cursor.execute("SELECT id FROM stage_results WHERE call_id = ? AND stage_number = ?", (call_id, stage_number))
-                row = cursor.fetchone()
-                if row:
-                    self.conn.execute("""
-                        UPDATE stage_results
-                        SET outcome = ?, prospect_words = ?, notes = ?, updated_at = ?
-                        WHERE call_id = ? AND stage_number = ?
-                    """, (outcome, prospect_words, notes, now, call_id, stage_number))
+            try:
+                result_data = {
+                    "call_id": call_id,
+                    "stage_number": stage_number,
+                    "outcome": outcome,
+                    "prospect_words": prospect_words,
+                    "notes": notes,
+                    "updated_at": now
+                }
+                existing = _supabase_client.table("stage_results").select("id").eq("call_id", call_id).eq("stage_number", stage_number).execute()
+                if existing.data:
+                    _supabase_client.table("stage_results").update(result_data).eq("id", existing.data[0]["id"]).execute()
                 else:
-                    res_id = str(uuid.uuid4())
-                    self.conn.execute("""
-                        INSERT INTO stage_results (id, call_id, stage_number, outcome, prospect_words, notes, created_at, updated_at)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    """, (res_id, call_id, stage_number, outcome, prospect_words, notes, now, now))
+                    result_data["id"] = str(uuid.uuid4())
+                    result_data["created_at"] = now
+                    _supabase_client.table("stage_results").insert(result_data).execute()
 
+                _supabase_client.table("calls").update({
+                    "current_stage": stage_number,
+                    "furthest_stage": new_furthest,
+                    "updated_at": now
+                }).eq("id", call_id).execute()
+
+                return self.get_call(call_id)
+            except Exception as e:
+                logger.warning(f"Supabase save_stage_result failed ({e}). Falling back to local database.")
+
+        with self.conn:
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT id FROM stage_results WHERE call_id = ? AND stage_number = ?", (call_id, stage_number))
+            row = cursor.fetchone()
+            if row:
                 self.conn.execute("""
-                    UPDATE calls
-                    SET current_stage = ?, furthest_stage = ?, updated_at = ?
-                    WHERE id = ?
-                """, (stage_number, new_furthest, now, call_id))
-            return self.get_call(call_id)
+                    UPDATE stage_results
+                    SET outcome = ?, prospect_words = ?, notes = ?, updated_at = ?
+                    WHERE call_id = ? AND stage_number = ?
+                """, (outcome, prospect_words, notes, now, call_id, stage_number))
+            else:
+                res_id = str(uuid.uuid4())
+                self.conn.execute("""
+                    INSERT INTO stage_results (id, call_id, stage_number, outcome, prospect_words, notes, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, (res_id, call_id, stage_number, outcome, prospect_words, notes, now, now))
+
+            self.conn.execute("""
+                UPDATE calls
+                SET current_stage = ?, furthest_stage = ?, updated_at = ?
+                WHERE id = ?
+            """, (stage_number, new_furthest, now, call_id))
+        return self.get_call(call_id)
 
     def close_call(self, call_id: str, final_outcome: str) -> Optional[Dict[str, Any]]:
         now = datetime.now(timezone.utc).isoformat()
@@ -213,37 +227,43 @@ class DatabaseAdapter:
             return None
 
         if self.use_supabase:
-            _supabase_client.table("calls").update({
-                "status": "completed",
-                "final_outcome": final_outcome,
-                "ended_at": now,
-                "updated_at": now
-            }).eq("id", call_id).execute()
-            return self.get_call(call_id)
-        else:
-            with self.conn:
-                self.conn.execute("""
-                    UPDATE calls
-                    SET status = 'completed', final_outcome = ?, ended_at = ?, updated_at = ?
-                    WHERE id = ?
-                """, (final_outcome, now, now, call_id))
-            return self.get_call(call_id)
+            try:
+                _supabase_client.table("calls").update({
+                    "status": "completed",
+                    "final_outcome": final_outcome,
+                    "ended_at": now,
+                    "updated_at": now
+                }).eq("id", call_id).execute()
+                return self.get_call(call_id)
+            except Exception as e:
+                logger.warning(f"Supabase close_call failed ({e}). Falling back to local database.")
+
+        with self.conn:
+            self.conn.execute("""
+                UPDATE calls
+                SET status = 'completed', final_outcome = ?, ended_at = ?, updated_at = ?
+                WHERE id = ?
+            """, (final_outcome, now, now, call_id))
+        return self.get_call(call_id)
 
     def update_call_summary(self, call_id: str, summary_text: str) -> Optional[Dict[str, Any]]:
         now = datetime.now(timezone.utc).isoformat()
         if self.use_supabase:
-            _supabase_client.table("calls").update({
-                "summary": summary_text,
-                "updated_at": now
-            }).eq("id", call_id).execute()
-            return self.get_call(call_id)
-        else:
-            with self.conn:
-                self.conn.execute("""
-                    UPDATE calls
-                    SET summary = ?, updated_at = ?
-                    WHERE id = ?
-                """, (summary_text, now, call_id))
-            return self.get_call(call_id)
+            try:
+                _supabase_client.table("calls").update({
+                    "summary": summary_text,
+                    "updated_at": now
+                }).eq("id", call_id).execute()
+                return self.get_call(call_id)
+            except Exception as e:
+                logger.warning(f"Supabase update_call_summary failed ({e}). Falling back to local database.")
+
+        with self.conn:
+            self.conn.execute("""
+                UPDATE calls
+                SET summary = ?, updated_at = ?
+                WHERE id = ?
+            """, (summary_text, now, call_id))
+        return self.get_call(call_id)
 
 db = DatabaseAdapter()

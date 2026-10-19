@@ -9,7 +9,7 @@ import CallHistoryModal from './components/CallHistoryModal';
 import CallSummaryModal from './components/CallSummaryModal';
 import { api } from './api';
 import { STAGES } from './data/stages';
-import { Phone, Sparkles, History, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
+import { Phone, Sparkles, History, ArrowRight, ShieldCheck, Zap, Compass, CheckCircle2 } from 'lucide-react';
 
 export default function App() {
   // Application State
@@ -195,6 +195,7 @@ export default function App() {
       setIsEndCallOpen(false);
 
       // Open Post-Call Summary Modal
+      setLatestSummary(null);
       setSummaryTargetCallId(closedCall.id);
       setIsSummaryOpen(true);
     } catch (err) {
@@ -215,8 +216,11 @@ export default function App() {
   const currentStageResult = stageResults[currentStageId] || {};
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 pb-20">
-      {/* Top Navbar */}
+    <div className="min-h-screen flex flex-col bg-aurora text-slate-100 relative selection:bg-fuchsia-500/30">
+      {/* Top ambient aurora blur light */}
+      <div className="aurora-blur" />
+
+      {/* Top Navigation */}
       <Navbar
         activeCall={activeCall}
         callSeconds={callSeconds}
@@ -228,7 +232,7 @@ export default function App() {
       />
 
       {activeCall && activeCall.status === 'in_progress' ? (
-        <>
+        <div className="flex-1 flex flex-col pb-24 relative z-10">
           {/* 8-Stage Progress Stepper */}
           <StageProgress
             currentStage={currentStageId}
@@ -237,7 +241,7 @@ export default function App() {
           />
 
           {/* Main Calling Screen Stage Card */}
-          <main className="flex-1">
+          <main className="flex-1 px-4 py-4 sm:py-6">
             <StageCard
               stage={currentStageObj}
               stageResult={currentStageResult}
@@ -257,74 +261,109 @@ export default function App() {
             onCompleteCall={() => setIsEndCallOpen(true)}
             saveStatus={saveStatus}
           />
-        </>
+        </div>
       ) : (
-        /* Standby / Calling Dashboard Hero */
-        <main className="flex-1 flex items-center justify-center p-6">
-          <div className="max-w-2xl w-full text-center space-y-8 py-10">
-            <div className="inline-flex items-center space-x-2 bg-brand-50 border border-brand-200 text-brand-700 px-3 py-1 rounded-full text-xs font-bold">
-              <Zap className="w-3.5 h-3.5" />
+        /* Standby / Calling Dashboard Hero (Dialit.ai inspired aesthetic) */
+        <main className="flex-1 flex items-center justify-center p-4 sm:p-6 relative z-10 my-auto">
+          <div className="max-w-4xl w-full text-center space-y-8 py-8 sm:py-16">
+
+            {/* Pill Tag */}
+            <div className="inline-flex items-center space-x-2.5 bg-white/[0.04] border border-white/10 hover:border-white/20 text-slate-300 px-4 py-1.5 rounded-full text-xs font-medium tracking-wide shadow-glow-sm transition-all">
+              <span className="flex h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
               <span>Grounded in 100 Cold-Call Transcripts</span>
+              <span className="text-white/20">|</span>
+              <span className="text-amber-300 font-semibold">Stage-by-Stage Cockpit</span>
             </div>
 
-            <div className="space-y-3">
-              <h1 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight font-heading">
-                The screen you keep open during a cold call.
+            {/* Hero Title with dialit style iridescent gradient */}
+            <div className="space-y-4">
+              <h1 className="text-4xl sm:text-6xl md:text-7xl font-black text-white tracking-tight font-heading leading-[1.1]">
+                Introducing RouteLab. <br />
+                <span className="gradient-dialit">
+                  Cold calls that actually convert.
+                </span>
               </h1>
-              <p className="text-base sm:text-lg text-slate-600 max-w-xl mx-auto leading-relaxed">
-                Understand the stage at a glance, listen without losing focus, capture the prospect's exact words, and track outcomes with single-tap controls.
+              <p className="text-base sm:text-lg md:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed font-normal">
+                Design, steer, and navigate high-velocity sales conversations in real time. Handle objections with proven scripts, capture prospect words, and generate instant AI debriefs.
               </p>
             </div>
 
+            {/* CTAs */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
               <button
                 id="hero-start-call-btn"
                 onClick={() => setIsNewCallOpen(true)}
-                className="w-full sm:w-auto px-8 py-4 text-base font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-2xl shadow-xl shadow-brand-500/25 active:scale-95 transition-all flex items-center justify-center space-x-2"
+                className="w-full sm:w-auto px-8 py-4 text-base font-bold text-white btn-glow rounded-2xl shadow-xl active:scale-95 transition-all flex items-center justify-center space-x-3 cursor-pointer"
               >
-                <Phone className="w-5 h-5" />
-                <span>Start Cold Call</span>
+                <Phone className="w-5 h-5 text-white" />
+                <span>Start Live Cold Call</span>
                 <ArrowRight className="w-4 h-4 ml-1" />
               </button>
 
               <button
                 onClick={() => setIsHistoryOpen(true)}
-                className="w-full sm:w-auto px-6 py-4 text-sm font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-2xl shadow-sm transition-all flex items-center justify-center space-x-2"
+                className="w-full sm:w-auto px-7 py-4 text-base font-semibold btn-outline-glow rounded-2xl shadow-sm transition-all flex items-center justify-center space-x-2 cursor-pointer"
               >
-                <History className="w-4 h-4 text-slate-500" />
-                <span>View Call History</span>
+                <History className="w-4 h-4 text-slate-400" />
+                <span>Call Archive & Analytics</span>
               </button>
             </div>
 
-            {/* Feature Pills */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 text-left">
-              <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-                <span className="font-extrabold text-slate-900 text-sm block mb-1">
-                  8 Official Stages
-                </span>
-                <p className="text-xs text-slate-500">
-                  From Opening to Permission, Their Need, and Close with evidence-based guidance.
+            {/* 3 Core Value Pillars */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-10 text-left">
+              <div className="glass-card glass-card-hover p-6 rounded-2xl">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-4">
+                  <Compass className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-white text-base mb-1.5 font-heading">
+                  8-Stage Guided Cockpit
+                </h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  From Opener to Permission, Problem Exploration, and Close — know exactly what to say next at any second.
                 </p>
               </div>
 
-              <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-                <span className="font-extrabold text-slate-900 text-sm block mb-1">
-                  Single-Tap Outcomes
-                </span>
-                <p className="text-xs text-slate-500">
-                  Four stage-specific choices per stage so you can log what happened while speaking.
+              <div className="glass-card glass-card-hover p-6 rounded-2xl">
+                <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-4">
+                  <Zap className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-white text-base mb-1.5 font-heading">
+                  Single-Tap Outcome Logging
+                </h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Four stage-specific response choices per stage. Capture what happened without losing conversation rhythm.
                 </p>
               </div>
 
-              <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-                <span className="font-extrabold text-slate-900 text-sm block mb-1">
-                  AI Post-Call Summary
-                </span>
-                <p className="text-xs text-slate-500">
-                  Synthesize stated needs, objections, and agreed next steps via server-side Gemini.
+              <div className="glass-card glass-card-hover p-6 rounded-2xl">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-4">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <h3 className="font-bold text-white text-base mb-1.5 font-heading">
+                  Server-Side AI Debrief
+                </h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Automated intelligence extracts stated pains, objections, agreed next steps, and rep performance scores in seconds.
                 </p>
               </div>
             </div>
+
+            {/* Trust bar */}
+            <div className="pt-6 border-t border-white/5 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500">
+              <span className="flex items-center space-x-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Zero manual post-call notes</span>
+              </span>
+              <span className="flex items-center space-x-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
+                <span>FastAPI + Supabase real-time sync</span>
+              </span>
+              <span className="flex items-center space-x-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-purple-400" />
+                <span>Mobile responsive companion</span>
+              </span>
+            </div>
+
           </div>
         </main>
       )}

@@ -90,7 +90,7 @@ Respond in strict JSON with these exact keys:
 }}
 """
 
-    try:
+    def _call_gemini_sync() -> Dict[str, Any]:
         from google import genai
         from google.genai import types
 
@@ -104,7 +104,14 @@ Respond in strict JSON with these exact keys:
             )
         )
 
-        text = response.text.strip()
+        text = (response.text or "").strip()
+        if text.startswith("```json"):
+            text = text[7:]
+        if text.startswith("```"):
+            text = text[3:]
+        if text.endswith("```"):
+            text = text[:-3]
+        text = text.strip()
         parsed = json.loads(text)
         return {
             "call_id": call["id"],
@@ -115,8 +122,12 @@ Respond in strict JSON with these exact keys:
             "agreed_next_step": parsed.get("agreed_next_step"),
             "follow_up_actions": parsed.get("follow_up_actions")
         }
+
+    try:
+        import asyncio
+        return await asyncio.wait_for(asyncio.to_thread(_call_gemini_sync), timeout=6.0)
     except Exception as e:
-        print(f"LLM generation failed: {e}. Falling back to deterministic summary.")
+        print(f"LLM generation failed ({type(e).__name__}: {e}). Falling back to deterministic summary.")
         fallback = generate_fallback_summary(call)
         fallback["source"] = f"fallback (provider error: {type(e).__name__})"
         return fallback
