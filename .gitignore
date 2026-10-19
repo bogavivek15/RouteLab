@@ -3,10 +3,16 @@ node_modules/
 
 # Environment files (secrets — never commit)
 .env
-.env.local
-.env.*.local
+.env.*
+*.env
+*.env.*
 apps/web/.env
+apps/web/.env.*
 services/api/.env
+services/api/.env.*
+!.env.example
+!apps/web/.env.example
+!services/api/.env.example
 
 # Build output
 dist/
