@@ -10,7 +10,7 @@ RouteLab is the live companion screen a sales representative keeps open during a
 - **Live API Service (Backend - Render):** [https://routelab-zj54.onrender.com](https://routelab-zj54.onrender.com)
   - Verified Health Endpoint: [https://routelab-zj54.onrender.com/api/health](https://routelab-zj54.onrender.com/api/health)
   - Root Health Alias: [https://routelab-zj54.onrender.com/health](https://routelab-zj54.onrender.com/health)
-- **Live Database:** Remote Supabase PostgreSQL (55+ verified calls persisted)
+- **Live Database:** Remote Supabase PostgreSQL (84 verified calls persisted)
 - **GitHub Repository:** [https://github.com/bogavivek15/RouteLab](https://github.com/bogavivek15/RouteLab)
 
 ---
@@ -82,7 +82,7 @@ callflow/
 │       ├── llm.py             # Server-side Gemini integration + deterministic fallback
 │       ├── models.py          # Pydantic request/response models
 │       ├── main.py            # FastAPI entry point & CORS configuration
-│       ├── tests/             # Automated test suite (22 tests)
+│       ├── tests/             # Automated test suite (23 tests)
 │       │   └── test_api.py
 │       ├── .env.example       # Backend environment template
 │       └── requirements.txt   # Pinned Python dependencies
