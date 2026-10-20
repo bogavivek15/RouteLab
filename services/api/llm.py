@@ -51,7 +51,8 @@ async def generate_call_summary(call: Dict[str, Any]) -> Dict[str, Any]:
     Generates a post-call summary using Google Gemini API if configured.
     Falls back gracefully to deterministic analysis on any error, timeout, or missing key.
     """
-    if not settings.LLM_API_KEY:
+    import os, sys
+    if not settings.LLM_API_KEY or os.getenv("CALLFLOW_ENV") == "test" or os.getenv("TESTING") == "1" or "pytest" in sys.modules:
         return generate_fallback_summary(call)
 
     # Prepare sanitized context for LLM
@@ -101,10 +102,17 @@ Respond in strict JSON with these exact keys:
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
                 temperature=0.2,
+                thinking_config=types.ThinkingConfig(thinking_budget=0),
             )
         )
 
-        text = (response.text or "").strip()
+        raw_text = response.text or ""
+        if not raw_text and response.candidates and response.candidates[0].content.parts:
+            # Fallback to concatenate text from parts if response.text warning occurred
+            text_parts = [p.text for p in response.candidates[0].content.parts if hasattr(p, "text") and p.text]
+            raw_text = "".join(text_parts)
+            
+        text = raw_text.strip()
         if text.startswith("```json"):
             text = text[7:]
         if text.startswith("```"):
@@ -125,9 +133,10 @@ Respond in strict JSON with these exact keys:
 
     try:
         import asyncio
-        return await asyncio.wait_for(asyncio.to_thread(_call_gemini_sync), timeout=6.0)
+        return await asyncio.wait_for(asyncio.to_thread(_call_gemini_sync), timeout=45.0)
     except Exception as e:
         print(f"LLM generation failed ({type(e).__name__}: {e}). Falling back to deterministic summary.")
         fallback = generate_fallback_summary(call)
         fallback["source"] = f"fallback (provider error: {type(e).__name__})"
         return fallback
+

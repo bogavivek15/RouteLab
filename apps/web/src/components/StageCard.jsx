@@ -153,17 +153,26 @@ export default function StageCard({
           </p>
           <textarea
             id="prospect-words-input"
-            rows={3}
+            rows={stage.id === 5 ? 4 : 3}
             value={prospectWords}
             onChange={(e) => onProspectWordsChange(e.target.value)}
-            placeholder="Type or paste the prospect's exact words here..."
-            className="w-full px-4 py-3 text-sm text-slate-100 bg-black/40 border border-white/15 rounded-xl focus:outline-none focus:ring-2 focus:ring-fuchsia-500/60 focus:border-fuchsia-500 placeholder-slate-500 transition-all resize-none shadow-inner"
-            style={{ minHeight: '84px' }}
+            placeholder={
+              stage.id === 5
+                ? "Record the prospect's exact, verbatim quote about their bottleneck, capacity, or goals (e.g. 'Operating at 60% capacity', 'Struggle with skilled manpower')..."
+                : "Type or paste the prospect's exact words here..."
+            }
+            className={`w-full px-4 py-3 text-sm text-slate-100 rounded-xl focus:outline-none transition-all resize-none shadow-inner ${
+              stage.id === 5
+                ? "bg-amber-950/20 border-2 border-amber-500/60 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/50 shadow-[0_0_25px_rgba(245,158,11,0.2)] text-amber-50 placeholder-amber-200/40"
+                : "bg-black/40 border border-white/15 focus:ring-2 focus:ring-fuchsia-500/60 focus:border-fuchsia-500 placeholder-slate-500"
+            }`}
+            style={{ minHeight: stage.id === 5 ? '104px' : '84px' }}
             onInput={(e) => {
               e.target.style.height = 'auto';
               e.target.style.height = e.target.scrollHeight + 'px';
             }}
           />
+
         </div>
 
         {/* Internal Caller Notes */}

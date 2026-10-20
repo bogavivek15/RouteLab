@@ -140,10 +140,26 @@ export const STAGES = [
 export const FINAL_OUTCOMES = [
   { value: "agreed_to_receive_report", label: "Agreed to receive report / info" },
   { value: "next_step_agreed", label: "Next call / meeting agreed" },
-  { value: "follow_up", label: "Follow up later" },
   { value: "interested", label: "Interested / in discovery" },
-  { value: "wrong_person", label: "Wrong person / referred" },
+  { value: "follow_up", label: "Follow up later" },
+  { value: "call_again", label: "Call dropped / call again" },
   { value: "not_interested", label: "Not interested" },
   { value: "do_not_call", label: "Do not call" },
-  { value: "call_again", label: "Call dropped / call again" }
+  { value: "wrong_person", label: "Wrong person / referred" },
+  { value: "moved_company", label: "Moved company / left organization" }
 ];
+
+// Historical outcome taxonomy from the 100-transcript archive (includes logging omissions)
+export const SOURCE_ARCHIVE_OUTCOMES = [
+  ...FINAL_OUTCOMES,
+  { value: "not_logged", label: "Unrecorded / Not logged in CRM (source dataset)" }
+];
+
+export const getOutcomeLabel = (outcomeValue) => {
+  if (!outcomeValue) return "Unrecorded / In Progress";
+  if (outcomeValue === "not_logged") return "Unrecorded / Not Logged";
+  const found = SOURCE_ARCHIVE_OUTCOMES.find(o => o.value === outcomeValue);
+  return found ? found.label : outcomeValue.replace(/_/g, " ");
+};
+
+

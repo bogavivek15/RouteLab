@@ -17,7 +17,9 @@ class Settings:
     SUPABASE_URL: str = os.getenv("ROUTELAB_SUPABASE_URL") or os.getenv("CALLFLOW_SUPABASE_URL", "")
     SUPABASE_SERVICE_KEY: str = os.getenv("ROUTELAB_SUPABASE_SERVICE_KEY") or os.getenv("CALLFLOW_SUPABASE_SERVICE_KEY", "")
     LLM_API_KEY: str = os.getenv("ROUTELAB_LLM_API_KEY") or os.getenv("CALLFLOW_LLM_API_KEY", "")
-    LLM_MODEL: str = os.getenv("ROUTELAB_LLM_MODEL") or os.getenv("CALLFLOW_LLM_MODEL", "gemini-2.0-flash")
+    _raw_model = os.getenv("ROUTELAB_LLM_MODEL") or os.getenv("CALLFLOW_LLM_MODEL", "gemini-3.8-flash")
+    # Guard against obsolete models set in legacy Render or .env variables (e.g. 404 deprecated gemini-2.0-flash)
+    LLM_MODEL: str = "gemini-3.8-flash" if _raw_model in ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.0-flash-exp", "gemini-1.5-pro"] else _raw_model
     CORS_ORIGIN: str = os.getenv("ROUTELAB_CORS_ORIGIN") or os.getenv("CALLFLOW_CORS_ORIGIN", "*")
     PORT: int = int(os.getenv("PORT", "8000"))
 

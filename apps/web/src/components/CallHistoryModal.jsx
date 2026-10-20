@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { History, X, Search, Eye, Clock, PhoneForwarded, Inbox } from 'lucide-react';
 import { api } from '../api';
-import { STAGES } from '../data/stages';
+import { STAGES, getOutcomeLabel } from '../data/stages';
+
 
 export default function CallHistoryModal({
   isOpen,
@@ -151,11 +152,22 @@ export default function CallHistoryModal({
                     <span className="font-medium text-fuchsia-300 bg-fuchsia-500/10 px-2 py-0.5 rounded-md border border-fuchsia-500/20">
                       Stage {call.furthest_stage}: {getStageName(call.furthest_stage)}
                     </span>
-                    {call.final_outcome && (
-                      <span className="font-medium text-slate-300 bg-white/5 px-2 py-0.5 rounded-md hidden sm:inline border border-white/5">
-                        {call.final_outcome.replace(/_/g, ' ')}
+                    {call.final_outcome ? (
+                      <span
+                        className={`font-medium px-2 py-0.5 rounded-md hidden sm:inline border ${
+                          call.final_outcome === 'not_logged'
+                            ? 'text-amber-400 bg-amber-500/10 border-amber-500/20 italic'
+                            : 'text-slate-300 bg-white/5 border-white/5'
+                        }`}
+                      >
+                        {getOutcomeLabel(call.final_outcome)}
+                      </span>
+                    ) : (
+                      <span className="font-medium text-slate-500 bg-white/5 px-2 py-0.5 rounded-md hidden sm:inline border border-white/5 italic">
+                        Unrecorded
                       </span>
                     )}
+
                   </div>
                 </div>
 
