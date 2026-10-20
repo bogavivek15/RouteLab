@@ -13,12 +13,12 @@ if _root_env.exists():
 load_dotenv()
 
 class Settings:
-    DATABASE_URL: str = os.getenv("CALLFLOW_DATABASE_URL", "")
-    SUPABASE_URL: str = os.getenv("CALLFLOW_SUPABASE_URL", "")
-    SUPABASE_SERVICE_KEY: str = os.getenv("CALLFLOW_SUPABASE_SERVICE_KEY", "")
-    LLM_API_KEY: str = os.getenv("CALLFLOW_LLM_API_KEY", "")
-    LLM_MODEL: str = os.getenv("CALLFLOW_LLM_MODEL", "gemini-2.0-flash")
-    CORS_ORIGIN: str = os.getenv("CALLFLOW_CORS_ORIGIN", "*")
+    DATABASE_URL: str = os.getenv("ROUTELAB_DATABASE_URL") or os.getenv("CALLFLOW_DATABASE_URL", "")
+    SUPABASE_URL: str = os.getenv("ROUTELAB_SUPABASE_URL") or os.getenv("CALLFLOW_SUPABASE_URL", "")
+    SUPABASE_SERVICE_KEY: str = os.getenv("ROUTELAB_SUPABASE_SERVICE_KEY") or os.getenv("CALLFLOW_SUPABASE_SERVICE_KEY", "")
+    LLM_API_KEY: str = os.getenv("ROUTELAB_LLM_API_KEY") or os.getenv("CALLFLOW_LLM_API_KEY", "")
+    LLM_MODEL: str = os.getenv("ROUTELAB_LLM_MODEL") or os.getenv("CALLFLOW_LLM_MODEL", "gemini-2.0-flash")
+    CORS_ORIGIN: str = os.getenv("ROUTELAB_CORS_ORIGIN") or os.getenv("CALLFLOW_CORS_ORIGIN", "*")
     PORT: int = int(os.getenv("PORT", "8000"))
 
 settings = Settings()

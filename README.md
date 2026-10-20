@@ -1,12 +1,22 @@
-# CallFlow — Cold-Call Companion Application
+# RouteLab — Cold-Call Companion Application
 
-CallFlow is the live companion screen a caller keeps open during a cold call. It enables callers to understand the current stage at a glance, actively listen without losing focus, capture the prospect's exact words, record stage outcomes with single-tap controls, and automatically generate post-call syntheses with server-side AI.
+RouteLab is the live companion screen a sales representative keeps open during a cold call. It enables callers to understand the current stage at a glance, actively listen without losing focus, capture the prospect's exact words, record stage outcomes with single-tap controls, and automatically generate post-call syntheses with server-side AI.
+
+---
+
+## Key Highlights & Caller Experience
+
+- **Intuitive Live Dashboard**: Replaces complex CRM interfaces with a clean, focused, 8-stage calling dashboard that keeps the caller grounded second-by-second.
+- **High-Velocity Single-Tap Outcomes**: 4 contextual outcomes per stage allowing callers to log reality instantly without breaking conversation cadence.
+- **Direct Prospect Quote Capture**: High-priority input in Stage 5 ("Their need, in their words") and Stage 6 ("Objections") capturing verbatim language used by prospects.
+- **Caller-Centric Terminology**: Pure conversational language free of developer jargon or vendor-specific terminology.
+- **Automated AI Call Debrief**: Real-time server-side intelligence that synthesizes prospect needs, objections, next steps, and coaching insights immediately upon call completion.
 
 ---
 
 ## Authoritative Grounding
 
-CallFlow is built strictly according to official product specifications and evidence:
+RouteLab is built strictly according to official product specifications and evidence:
 1. **Official Eight-Stage Structure**:
    - `1. Opening`: Reach the right person and state who you are within 10 seconds.
    - `2. Purpose`: State in 1-2 sentences why you called, in words the prospect can repeat to a colleague.
@@ -16,7 +26,7 @@ CallFlow is built strictly according to official product specifications and evid
    - `6. Objection`: Understand the underlying reason for hesitation.
    - `7. Next step`: Agree on one concrete item (WhatsApp document, named callback time).
    - `8. Close`: End the call clearly and log the outcome.
-2. **ClinicBooks Reference Screen**: Dynamic header with ticking call timer, 8-stage progress stepper, "She may say" guidance card, 4-tap outcome grid, and prominent "Her words" free-text quote box.
+2. **ClinicBooks Reference Screen**: Dynamic header with ticking call timer, 8-stage progress stepper, universal prospect reaction cards, 4-tap outcome grid, and prominent verbatim quote box.
 3. **100 Cold-Call Transcript Archive**: Analyzed across 100 real call recordings from Meridian Growth Partners (Hyderabad) to design evidence-based outcome choices, common objections, and prospect behaviors.
 
 ---
@@ -31,17 +41,20 @@ CallFlow is built strictly according to official product specifications and evid
 
 ---
 
-## Monorepo Layout
+## Clean Monorepo Layout
 
 ```text
 callflow/
 ├── apps/
-│   └── web/                   # React + Vite + Tailwind CSS frontend
+│   └── web/                   # React 19 + Vite 8 + Tailwind CSS frontend
+│       ├── public/            # Favicon and static web assets
 │       ├── src/
+│       │   ├── assets/        # Visual assets (hero imagery)
 │       │   ├── components/    # Navbar, StageProgress, StageCard, BottomBar, Modals
 │       │   ├── data/          # Stage definitions & outcome choices (stages.js)
 │       │   ├── api.js         # Unified API client utility
 │       │   ├── App.jsx        # Master state and navigation container
+│       │   ├── index.css      # Design system, glassmorphism, and custom animations
 │       │   └── main.jsx       # React application entry point
 │       ├── .env.example       # Frontend environment template
 │       ├── package.json
@@ -123,21 +136,21 @@ The frontend application will run on `http://localhost:5173`.
 Copy `services/api/.env.example` to `services/api/.env`:
 | Variable | Description | Default / Example |
 |---|---|---|
-| `CALLFLOW_DATABASE_URL` | Supabase PostgreSQL connection string | Optional (falls back to local SQLite) |
-| `CALLFLOW_SUPABASE_URL` | Supabase project URL | Optional |
-| `CALLFLOW_SUPABASE_SERVICE_KEY` | Supabase service-role secret key | Optional |
-| `CALLFLOW_LLM_API_KEY` | Google Gemini API Key | Optional (falls back to deterministic summary) |
-| `CALLFLOW_LLM_MODEL` | Gemini Model Identifier | `gemini-2.0-flash` |
-| `CALLFLOW_CORS_ORIGIN` | Allowed Frontend Origin | `*` or `http://localhost:5173` |
+| `ROUTELAB_DATABASE_URL` (or `CALLFLOW_DATABASE_URL`) | Supabase PostgreSQL connection string | Optional (falls back to local SQLite) |
+| `ROUTELAB_SUPABASE_URL` (or `CALLFLOW_SUPABASE_URL`) | Supabase project URL | Optional |
+| `ROUTELAB_SUPABASE_SERVICE_KEY` (or `CALLFLOW_SUPABASE_SERVICE_KEY`) | Supabase service-role secret key | Optional |
+| `ROUTELAB_LLM_API_KEY` (or `CALLFLOW_LLM_API_KEY`) | Google Gemini API Key | Optional (falls back to deterministic summary) |
+| `ROUTELAB_LLM_MODEL` (or `CALLFLOW_LLM_MODEL`) | Gemini Model Identifier | `gemini-2.0-flash` |
+| `ROUTELAB_CORS_ORIGIN` (or `CALLFLOW_CORS_ORIGIN`) | Allowed Frontend Origin | `*` or `http://localhost:5173` |
 | `PORT` | Web Service Port | `8000` |
 
 ### Frontend (`apps/web/.env`)
 Copy `apps/web/.env.example` to `apps/web/.env`:
 | Variable | Description | Default / Example |
 |---|---|---|
-| `VITE_CALLFLOW_API_BASE_URL` | Base URL for FastAPI backend | `/api` (local proxy) or `https://<render-service>.onrender.com/api` |
-| `VITE_CALLFLOW_SUPABASE_URL` | Public Supabase project URL | Optional |
-| `VITE_CALLFLOW_SUPABASE_ANON_KEY` | Public Supabase Anon key | Optional |
+| `VITE_ROUTELAB_API_BASE_URL` (or `VITE_CALLFLOW_API_BASE_URL`) | Base URL for backend API | `/api` (local proxy) or `https://<render-service>.onrender.com/api` |
+| `VITE_ROUTELAB_SUPABASE_URL` (or `VITE_CALLFLOW_SUPABASE_URL`) | Public Supabase project URL | Optional |
+| `VITE_ROUTELAB_SUPABASE_ANON_KEY` (or `VITE_CALLFLOW_SUPABASE_ANON_KEY`) | Public Supabase Anon key | Optional |
 
 ---
 
@@ -158,11 +171,17 @@ All endpoints use JSON payloads and return structured responses:
 ---
 
 ## Testing
-
+ 
 Run the automated test suite across Unit, Integration, API Contract, and Resilience tests:
-```bash
-# From repository root:
+```powershell
+# Windows PowerShell (from repository root):
+$env:PYTHONPATH="."
 .\services\api\.venv\Scripts\python -m pytest services/api/tests -v
+```
+
+```bash
+# macOS / Linux (from repository root):
+PYTHONPATH=. services/api/.venv/bin/pytest services/api/tests -v
 ```
 All 9 automated test suites verify:
 - Pydantic models & validation rules

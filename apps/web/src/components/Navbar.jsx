@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, Clock, History, PlusCircle, CheckCircle2, AlertCircle, Wifi, WifiOff } from 'lucide-react';
+import { Phone, Clock, History, PlusCircle, Wifi, WifiOff } from 'lucide-react';
 
 export default function Navbar({
   activeCall,
@@ -34,7 +34,7 @@ export default function Navbar({
                 RouteLab<span className="text-amber-400"></span>
               </span>
               <span className="hidden sm:inline-flex text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full bg-fuchsia-500/15 text-fuchsia-300 border border-fuchsia-400/20">
-                Copilot
+                Live Guide
               </span>
             </div>
             <p className="text-[11px] text-slate-400 hidden sm:block">Cold calls that convert.</p>
@@ -57,10 +57,10 @@ export default function Navbar({
 
             <div className="hidden md:flex flex-col text-left">
               <span className="text-xs font-semibold text-white truncate max-w-[140px]">
-                {activeCall.prospect_name || 'Prospect'}
+                {activeCall.prospect_name || 'Active Call'}
               </span>
               <span className="text-[11px] text-slate-400 truncate max-w-[160px]">
-                {activeCall.prospect_company || 'Cold Call'}
+                {activeCall.prospect_company || 'Cold Outreach'}
               </span>
             </div>
           </div>
@@ -68,7 +68,7 @@ export default function Navbar({
           <div className="hidden md:flex items-center space-x-2 text-xs">
             {backendStatus === 'healthy' ? (
               <span className="flex items-center text-emerald-400 font-medium bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-400/20">
-                <Wifi className="w-3 h-3 mr-1.5" /> API Connected
+                <Wifi className="w-3 h-3 mr-1.5" /> System Ready
               </span>
             ) : (
               <span className="flex items-center text-amber-400 font-medium bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-400/20">

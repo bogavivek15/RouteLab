@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Quote, MessageSquare, Check, HelpCircle, Lightbulb, AlertTriangle, ChevronDown } from 'lucide-react';
+import { Quote, MessageSquare, Check, Lightbulb, AlertTriangle, ChevronDown } from 'lucide-react';
 
 export default function StageCard({
   stage,
@@ -30,11 +30,11 @@ export default function StageCard({
           </div>
           <div className="flex items-center space-x-2 text-xs text-slate-300 bg-white/[0.04] px-3.5 py-2 rounded-xl border border-white/10 self-start sm:self-auto">
             <div className="w-6 h-6 rounded-full bg-gradient-brand flex items-center justify-center text-white text-[10px] font-bold shrink-0 shadow-glow-sm">
-              {(prospectName || 'P').charAt(0).toUpperCase()}
+              {(prospectName || 'C').charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <span className="font-semibold text-white block truncate">{prospectName || 'Prospect'}</span>
-              <span className="text-[11px] text-slate-400 block truncate">{prospectCompany || 'Cold Call'}</span>
+              <span className="font-semibold text-white block truncate">{prospectName || 'Active Call'}</span>
+              <span className="text-[11px] text-slate-400 block truncate">{prospectCompany || 'Cold Outreach'}</span>
             </div>
           </div>
         </div>
@@ -48,7 +48,7 @@ export default function StageCard({
         </div>
       </div>
 
-      {/* "She may say" Guidance Section — Collapsible */}
+      {/* "What the prospect might say" Guidance Section — Collapsible */}
       <div className="glass-card rounded-2xl overflow-hidden shadow-card border border-white/10">
         <button
           type="button"
@@ -60,7 +60,7 @@ export default function StageCard({
               <Quote className="w-3.5 h-3.5 text-white" />
             </div>
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              She may say / What tends to happen
+              What the prospect might say / Common reactions
             </h2>
           </div>
           <ChevronDown
@@ -87,11 +87,11 @@ export default function StageCard({
         )}
       </div>
 
-      {/* "What happened" 4-Tap Outcome Grid */}
+      {/* Stage Outcome 4-Tap Grid */}
       <div className="glass-card rounded-2xl p-5 sm:p-6 shadow-card border border-white/10">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-bold uppercase tracking-wider text-slate-200">
-            What happened
+            Stage Outcome
           </h2>
           <span className="text-[11px] text-slate-400 font-medium">Single tap to log outcome</span>
         </div>

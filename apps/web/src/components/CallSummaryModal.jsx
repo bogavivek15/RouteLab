@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Sparkles, X, AlertCircle, Quote, Loader2,
-  Target, ShieldAlert, ArrowRight, Clipboard, Check,
+  Sparkles, X, AlertCircle, Quote,
+  Target, ShieldAlert, ArrowRight, Check,
   TrendingUp, MessageCircle, Zap, Copy
 } from 'lucide-react';
 import { api } from '../api';
@@ -20,17 +20,7 @@ export default function CallSummaryModal({
   const [error, setError] = useState(null);
   const [copiedField, setCopiedField] = useState(null);
 
-  useEffect(() => {
-    if (isOpen && callId) {
-      setSummaryData(initialSummary || null);
-      loadCallDetails();
-    } else {
-      setSummaryData(null);
-      setCall(null);
-    }
-  }, [isOpen, callId, initialSummary]);
-
-  const loadCallDetails = async () => {
+  const loadCallDetails = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -61,7 +51,17 @@ export default function CallSummaryModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, [callId, initialSummary]);
+
+  useEffect(() => {
+    if (isOpen && callId) {
+      setSummaryData(initialSummary || null);
+      loadCallDetails();
+    } else {
+      setSummaryData(null);
+      setCall(null);
+    }
+  }, [isOpen, callId, initialSummary, loadCallDetails]);
 
   const handleGenerateSummary = async () => {
     setSummarizing(true);
@@ -87,8 +87,8 @@ export default function CallSummaryModal({
   const copyFullSummary = () => {
     if (!summaryData || !call) return;
     const text = [
-      `RouteLab Call Summary — ${call.prospect_name || 'Prospect'}`,
-      `Company: ${call.prospect_company || 'N/A'}`,
+      `RouteLab Call Summary — ${call.prospect_name || 'Active Call'}`,
+      `Company: ${call.prospect_company || 'Cold Outreach'}`,
       `Furthest Stage: ${call.furthest_stage}/8`,
       `Final Outcome: ${call.final_outcome || 'In Progress'}`,
       '',
@@ -159,12 +159,12 @@ export default function CallSummaryModal({
                       ? 'bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/30'
                       : 'bg-white/10 text-slate-300 border border-white/10'
                   }`}>
-                    {summaryData.source === 'llm' ? 'Gemini AI Debrief' : 'Evidence Summary'}
+                    {summaryData.source === 'llm' ? 'AI-Powered Debrief' : 'Evidence Summary'}
                   </span>
                 )}
               </div>
               <p className="text-xs text-slate-400 truncate mt-0.5">
-                {call?.prospect_name || 'Prospect'} · {call?.prospect_company || 'Cold Call'} · Stage {call?.furthest_stage || 1}/8
+                {call?.prospect_name || 'Active Call'} · {call?.prospect_company || 'Cold Outreach'} · Stage {call?.furthest_stage || 1}/8
               </p>
             </div>
           </div>
@@ -200,7 +200,7 @@ export default function CallSummaryModal({
                   </div>
                   <h3 className="font-bold text-white text-sm">Synthesizing Call Intelligence...</h3>
                   <p className="text-xs text-slate-400 max-w-xs mx-auto">
-                    Gemini AI is analyzing stage outcomes, prospect statements, and conversation flow to produce structured insights.
+                    Our AI is analyzing stage outcomes, prospect statements, and conversation flow to produce structured insights.
                   </p>
                   <div className="flex items-center justify-center space-x-1.5 pt-2">
                     <span className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}} />

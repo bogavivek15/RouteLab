@@ -176,8 +176,8 @@ def test_call_lifecycle_and_furthest_stage_tracking():
 # ==========================================
 
 def test_api_latency_under_normal_operations():
-    # When connected to remote cloud Supabase over the public internet, allow cloud roundtrip
-    max_latency = 2.5 if db.use_supabase else 0.200
+    # When connected to remote cloud Supabase over the public internet, allow cloud roundtrip (3.5s max)
+    max_latency = 3.5 if db.use_supabase else 0.200
 
     # Create call latency
     t0 = time.time()

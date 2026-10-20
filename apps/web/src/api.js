@@ -1,9 +1,12 @@
 /**
  * Unified API Client for CallFlow Frontend
- * Communicates with the FastAPI backend.
+ * Communicates with the CallFlow backend API.
  */
 
-const API_BASE_URL = import.meta.env.VITE_CALLFLOW_API_BASE_URL || "/api";
+const API_BASE_URL =
+  import.meta.env.VITE_ROUTELAB_API_BASE_URL ||
+  import.meta.env.VITE_CALLFLOW_API_BASE_URL ||
+  "/api";
 
 async function request(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
@@ -19,7 +22,9 @@ async function request(endpoint, options = {}) {
       try {
         const errJson = await res.json();
         errorMsg = errJson.detail || errorMsg;
-      } catch (_) {}
+      } catch {
+        // Fallback to HTTP status error text if response is not JSON
+      }
       throw new Error(errorMsg);
     }
     return await res.json();

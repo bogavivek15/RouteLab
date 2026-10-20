@@ -13,8 +13,8 @@ from services.api.config import settings
 from services.api.routes import health, calls, summarize
 
 app = FastAPI(
-    title="CallFlow API",
-    description="Backend API for CallFlow - the real-time cold-call companion",
+    title="RouteLab API",
+    description="Backend API for RouteLab - the real-time cold-call companion",
     version="1.0.0"
 )
 

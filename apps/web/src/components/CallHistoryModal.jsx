@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { History, X, Search, Eye, Clock, PhoneForwarded, Inbox } from 'lucide-react';
 import { api } from '../api';
 import { STAGES } from '../data/stages';
@@ -13,13 +13,7 @@ export default function CallHistoryModal({
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    if (isOpen) {
-      loadCalls();
-    }
-  }, [isOpen]);
-
-  const loadCalls = async () => {
+  const loadCalls = useCallback(async () => {
     setLoading(true);
     try {
       const data = await api.listCalls();
@@ -29,7 +23,13 @@ export default function CallHistoryModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadCalls();
+    }
+  }, [isOpen, loadCalls]);
 
   if (!isOpen) return null;
 
@@ -122,14 +122,14 @@ export default function CallHistoryModal({
                 <div className="space-y-1.5 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <div className="w-7 h-7 rounded-full bg-gradient-brand flex items-center justify-center text-white text-[10px] font-bold shrink-0 shadow-glow-sm">
-                      {(call.prospect_name || 'P').charAt(0).toUpperCase()}
+                      {(call.prospect_name || 'C').charAt(0).toUpperCase()}
                     </div>
                     <span className="font-bold text-white text-sm truncate">
-                      {call.prospect_name || 'Prospective Lead'}
+                      {call.prospect_name || 'Active Call'}
                     </span>
                     <span className="text-xs text-slate-500 hidden sm:inline">·</span>
                     <span className="text-xs font-medium text-slate-400 truncate hidden sm:inline">
-                      {call.prospect_company || 'Cold Call'}
+                      {call.prospect_company || 'Cold Outreach'}
                     </span>
                     <span
                       className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${

@@ -9,7 +9,7 @@ import CallHistoryModal from './components/CallHistoryModal';
 import CallSummaryModal from './components/CallSummaryModal';
 import { api } from './api';
 import { STAGES } from './data/stages';
-import { Phone, Sparkles, History, ArrowRight, ShieldCheck, Zap, Compass, CheckCircle2 } from 'lucide-react';
+import { Phone, Sparkles, History, ArrowRight, Zap, Compass, CheckCircle2 } from 'lucide-react';
 
 export default function App() {
   // Application State
@@ -31,21 +31,24 @@ export default function App() {
   // Debounce ref for auto-saving typed notes
   const saveTimeoutRef = useRef(null);
   const activeCallRef = useRef(activeCall);
-  activeCallRef.current = activeCall;
+
+  useEffect(() => {
+    activeCallRef.current = activeCall;
+  }, [activeCall]);
+
+  const checkHealth = useCallback(async () => {
+    try {
+      const res = await api.getHealth();
+      setBackendStatus(res.status);
+    } catch {
+      setBackendStatus('offline');
+    }
+  }, []);
 
   // Check Backend Health on mount
   useEffect(() => {
     checkHealth();
-  }, []);
-
-  const checkHealth = async () => {
-    try {
-      const res = await api.getHealth();
-      setBackendStatus(res.status);
-    } catch (_) {
-      setBackendStatus('offline');
-    }
-  };
+  }, [checkHealth]);
 
   // Call timer interval
   useEffect(() => {
@@ -272,7 +275,7 @@ export default function App() {
               <span className="flex h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
               <span>Grounded in 100 Cold-Call Transcripts</span>
               <span className="text-white/20">|</span>
-              <span className="text-amber-300 font-semibold">Stage-by-Stage Cockpit</span>
+              <span className="text-amber-300 font-semibold">Stage-by-Stage Dashboard</span>
             </div>
 
             {/* Hero Title with dialit style iridescent gradient */}
@@ -316,7 +319,7 @@ export default function App() {
                   <Compass className="w-5 h-5" />
                 </div>
                 <h3 className="font-bold text-white text-base mb-1.5 font-heading">
-                  8-Stage Guided Cockpit
+                  8-Stage Live Dashboard
                 </h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
                   From Opener to Permission, Problem Exploration, and Close — know exactly what to say next at any second.
@@ -356,7 +359,7 @@ export default function App() {
               </span>
               <span className="flex items-center space-x-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
-                <span>FastAPI + Supabase real-time sync</span>
+                <span>Cloud-synced across all your devices</span>
               </span>
               <span className="flex items-center space-x-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-purple-400" />

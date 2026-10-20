@@ -13,8 +13,8 @@ export default function NewCallModal({ isOpen, onClose, onStartCall }) {
     setLoading(true);
     try {
       await onStartCall({
-        prospect_name: name.trim() || 'Prospective Lead',
-        prospect_company: company.trim() || 'Target Account'
+        prospect_name: name.trim(),
+        prospect_company: company.trim()
       });
       setName('');
       setCompany('');
@@ -58,7 +58,7 @@ export default function NewCallModal({ isOpen, onClose, onStartCall }) {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Dr. Rajesh Sharma (Director)"
+                placeholder="e.g. Alex Morgan (VP Operations)"
                 className="w-full pl-10 pr-3.5 py-2.5 text-sm text-white bg-black/40 border border-white/15 rounded-xl focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500 placeholder-slate-500 transition-all"
               />
             </div>
@@ -66,7 +66,7 @@ export default function NewCallModal({ isOpen, onClose, onStartCall }) {
 
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-              Company / Clinic Name
+              Company / Account Name
             </label>
             <div className="relative">
               <Building className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -75,7 +75,7 @@ export default function NewCallModal({ isOpen, onClose, onStartCall }) {
                 type="text"
                 value={company}
                 onChange={(e) => setCompany(e.target.value)}
-                placeholder="e.g. City Health Clinic"
+                placeholder="e.g. Apex Logistics"
                 className="w-full pl-10 pr-3.5 py-2.5 text-sm text-white bg-black/40 border border-white/15 rounded-xl focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 focus:border-fuchsia-500 placeholder-slate-500 transition-all"
               />
             </div>
@@ -96,7 +96,7 @@ export default function NewCallModal({ isOpen, onClose, onStartCall }) {
               className="btn-glow px-5 py-2.5 text-sm font-bold text-white rounded-xl shadow-glow-sm hover:shadow-glow transition-all active:scale-[0.97] flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               <PhoneCall className="w-4 h-4" />
-              <span>{loading ? 'Starting...' : 'Open Call Cockpit'}</span>
+              <span>{loading ? 'Starting...' : 'Open Call Dashboard'}</span>
               {!loading && <ArrowRight className="w-3.5 h-3.5" />}
             </button>
           </div>
