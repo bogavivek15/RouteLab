@@ -7,7 +7,7 @@ export const STAGES = [
     sheMaySay: [
       "Who is this and what is it regarding?",
       "I am driving right now / heading into a meeting.",
-      "Mr. Rao no longer works with this firm."
+      "{prospect} no longer works with this firm."
     ],
     outcomes: [
       "Reached the right person",

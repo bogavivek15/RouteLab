@@ -15,6 +15,14 @@ export default function StageCard({
   const notes = stageResult?.notes || '';
   const [showGuidance, setShowGuidance] = useState(true);
 
+  const formatGuidanceText = (text) => {
+    if (!text) return '';
+    const name = prospectName?.trim() || 'That person';
+    return text
+      .replace(/\{prospect\}/g, name)
+      .replace(/Mr\. Rao/g, name);
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-4 sm:space-y-5 animate-fade-in text-slate-100">
       {/* Prospect & Stage Banner */}
@@ -78,7 +86,7 @@ export default function StageCard({
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2 shrink-0 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
                   <p className="text-xs sm:text-sm text-slate-300 italic leading-snug">
-                    "{item}"
+                    "{formatGuidanceText(item)}"
                   </p>
                 </div>
               ))}
